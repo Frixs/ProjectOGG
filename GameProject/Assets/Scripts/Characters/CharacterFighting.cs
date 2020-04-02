@@ -44,6 +44,11 @@ public class CharacterFighting : MonoBehaviour
     [Header("Stats")]
     public float fireSpeed = 1.0f;
 
+    /// <summary>
+    /// Number of projectiles in quiver
+    /// </summary>
+    public int quiver = 10;
+
     #endregion
 
     #region Public Members (Settings)
@@ -149,10 +154,10 @@ public class CharacterFighting : MonoBehaviour
         // Fire
         if (FireTime > Time.time && FireCooldownTimer + fireSpeed < Time.time)
             if (IsFireAllowed)
-                if (GameManager.Instance.IsMeleeDistance) // TODO: 0 arrow - switch to melee only
-                    StartCoroutine(MeleeFire());
-                else
+                if (!GameManager.Instance.IsMeleeDistance && quiver > 0)
                     StartCoroutine(RangedFire());
+                else
+                    StartCoroutine(MeleeFire());
 
     }
 
@@ -216,6 +221,9 @@ public class CharacterFighting : MonoBehaviour
         // Perform fire
         PerformRangedFire();
 
+        // Lower the quiver content
+        quiver--;
+
         // Put the flag down
         IsPerformingFireFlag = false;
     }
@@ -259,7 +267,7 @@ public class CharacterFighting : MonoBehaviour
             // Ignoring, character is death (corpse)
             if (collision.gameObject.GetComponent<CharacterMortality>().IsDeath)
                 return;
-            
+
             // Rebirth the player
             GameManager.Instance.Rebirth(collision.gameObject.name);
         }

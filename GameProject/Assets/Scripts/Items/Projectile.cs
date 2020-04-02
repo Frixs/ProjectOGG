@@ -10,15 +10,20 @@ public class Projectile : MonoBehaviour
     /// <inheritdoc cref="Caster"/>
     private GameObject _caster;
 
+    /// <summary>
+    /// Rigid body of the projectile
+    /// </summary>
+    private Rigidbody2D _rb;
+
     #endregion
 
     #region Public Members (Components)
 
     /// <summary>
-    /// Rigid body of the projectile
+    /// Reference to projectile item prefab
     /// </summary>
     [Header("Components")]
-    public Rigidbody2D rb;
+    public GameObject projectileItemPrefab;
 
     #endregion
 
@@ -62,13 +67,14 @@ public class Projectile : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        rb.velocity = (IsFacingRight ? Vector2.right : Vector2.left) * speed;
+        _rb = GetComponent<Rigidbody2D>();
+        _rb.velocity = (IsFacingRight ? Vector2.right : Vector2.left) * speed;
     }
 
     /// <summary>
-    /// Update is called once per frame
+    /// Fixed update
     /// </summary>
-    private void Update()
+    private void FixedUpdate()
     {
 
     }
@@ -97,8 +103,13 @@ public class Projectile : MonoBehaviour
             // Rebirth the player
             GameManager.Instance.Rebirth(collision.gameObject.name);
         }
+        // Otherwise...
+        else
+        {
+            var item = Instantiate(projectileItemPrefab, gameObject.transform.position, Quaternion.identity);
+        }
 
-        // TODO: Leave the projectile on
+        // Destroy projectile
         Destroy(gameObject);
     }
 

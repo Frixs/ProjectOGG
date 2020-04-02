@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    #region Private Members
+    #region Private Members (Singleton)
 
     /// <summary>
     /// Static instance of GameManager which allows us toaccess it in any other script.
@@ -16,12 +16,21 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Public Members (Settings)
+    #region Private Members
+
+    /// <summary>
+    /// <inheritdoc cref="CurrentRoom"/>
+    /// </summary>
+    public short _currentRoom = 0;
+
+    #endregion
+
+    #region Public Members (General Settings)
 
     /// <summary>
     /// Defualt respawn time
     /// </summary>
-    [Header("Settings")]
+    [Header("General Settings")]
     public float respawnTimeDefault = 3f;
 
     /// <summary>
@@ -36,37 +45,74 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
+    #region Public Members (Load Settings)
+
+    /// <summary>
+    /// Game Object Name of <see cref="Player1"/> to search for while setting up the scene
+    /// </summary>
+    [Header("Load Settings")]
+    public string ObjectNameP1 = "Player_1";
+
+    /// <summary>
+    /// Game Object Name of <see cref="Player2"/> to search for while setting up the scene
+    /// </summary>
+    public string ObjectNameP2 = "Player_2";
+
+    /// <summary>
+    /// Game Object Name of <see cref="Player1_SpawnPointList"/> to search for while setting up the scene
+    /// Order matters - Index: 0 = the closest spawn point to house
+    /// </summary>
+    public string SpawnPointListObjectNameP1 = "SpawnPointsP1";
+
+    /// <summary>
+    /// Game Object Name of <see cref="Player2_SpawnPointList"/> to search for while setting up the scene
+    /// Order matters - Index: 0 = the closest spawn point to house
+    /// </summary>
+    public string SpawnPointListObjectNameP2 = "SpawnPointsP2";
+
+    #endregion
+
     #region Public Properties
 
     /// <summary>
-    /// Player 1 GO
+    /// Player 1 GameObject
     /// </summary>
     public GameObject Player1 { get; private set; }
 
     /// <summary>
-    /// Player 2 GO
+    /// Player 2 GameObject
     /// </summary>
     public GameObject Player2 { get; private set; }
 
     /// <summary>
     /// Spawn points for <see cref="Player1"/>
     /// </summary>
-    public List<Transform> Player1SpawnPointList { get; private set; }
+    public List<Transform> Player1_SpawnPointList { get; private set; }
 
     /// <summary>
     /// Spawn points for <see cref="Player2"/>
     /// </summary>
-    public List<Transform> Player2SpawnPointList { get; private set; }
+    public List<Transform> Player2_SpawnPointList { get; private set; }
 
     /// <summary>
     /// Player 1 statistics collection
     /// </summary>
-    public GameStatistics Player1Statistics { get; private set; } = new GameStatistics();
+    public GameStatistics Player1_Statistics { get; private set; } = new GameStatistics();
 
     /// <summary>
     /// Player 2 statistics collection
     /// </summary>
-    public GameStatistics Player2Statistics { get; private set; } = new GameStatistics();
+    public GameStatistics Player2_Statistics { get; private set; } = new GameStatistics();
+
+    /// <summary>
+    /// Indicates if Player 1 is in attack
+    /// </summary>
+    public bool IsAttackerPlayer1 => CurrentRoom > 0;
+
+    /// <summary>
+    /// Indicates if Player 2 is in attack
+    /// </summary>
+    public bool IsAttackerPlayer2 => CurrentRoom < 0;
 
     /// <summary>
     /// Indicates current room by number
@@ -78,7 +124,20 @@ public class GameManager : MonoBehaviour
     ///      1
     ///      2 = Player2 home
     /// </remarks>
-    public short CurrentRoom { get; set; } = 0;
+    public short CurrentRoom 
+    { 
+        get => _currentRoom;
+        set
+        {
+            PreviousRoom = _currentRoom;
+            _currentRoom = value;
+        }
+    }
+
+    /// <summary>
+    /// Previous room for <see cref="CurrentRoom"/>
+    /// </summary>
+    public short PreviousRoom { get; set; } = 0;
 
     /// <summary>
     /// Indicates any player death
@@ -92,8 +151,9 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// Indicates melee distance between players
+    /// If any player is death, it returns FALSE
     /// </summary>
-    public bool IsMeleeDistance => GetDistanceBetweenPlayers <= meleeDistance;
+    public bool IsMeleeDistance => AnyPlayerDeath ? false : GetDistanceBetweenPlayers <= meleeDistance;
 
     #endregion
 
@@ -118,28 +178,13 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// TODO: this and <see cref="Start"/> has to be changed. This is just temporary solution!!!
+    /// On new scene load while this instance is active
     /// </summary>
     /// <param name="level"></param>
     private void OnLevelWasLoaded(int level)
     {
-        // Reset players
-        Player1 = null;
-        Player2 = null;
-
-        // Load players
-        Player1 = GameObject.Find("Player_1");
-        Player2 = GameObject.Find("Player_2");
-
-        // Reset spawnpoints
-        Player1SpawnPointList = new List<Transform>();
-        Player2SpawnPointList = new List<Transform>();
-
-        // Load spawn points
-        foreach (Transform child in GameObject.Find("SpawnPointsP1").transform)
-            Player1SpawnPointList.Add(child);
-        foreach (Transform child in GameObject.Find("SpawnPointsP2").transform)
-            Player2SpawnPointList.Add(child);
+        // Init
+        InitializeInScene();
     }
 
     /// <summary>
@@ -147,23 +192,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        // Reset players
-        Player1 = null;
-        Player2 = null;
-
-        // Load players
-        Player1 = GameObject.Find("Player_1");
-        Player2 = GameObject.Find("Player_2");
-        
-        // Reset spawnpoints
-        Player1SpawnPointList = new List<Transform>();
-        Player2SpawnPointList = new List<Transform>();
-
-        // Load spawn points
-        foreach (Transform child in GameObject.Find("SpawnPointsP1").transform)
-            Player1SpawnPointList.Add(child);
-        foreach (Transform child in GameObject.Find("SpawnPointsP2").transform)
-            Player2SpawnPointList.Add(child);
+        // Init - this happens only once at the beginning of the game
+        InitializeInScene();
     }
 
     /// <summary>
@@ -183,8 +213,8 @@ public class GameManager : MonoBehaviour
     public void NewGame()
     {
         // Clear statistics
-        Player1Statistics = new GameStatistics();
-        Player2Statistics = new GameStatistics();
+        Player1_Statistics = new GameStatistics();
+        Player2_Statistics = new GameStatistics();
     }
 
     /// <summary>
@@ -196,7 +226,7 @@ public class GameManager : MonoBehaviour
         // Get the player values
         var isItPlayer1 = IsItPlayer1(playerName);
         var player = isItPlayer1 ? Player1 : Player2;
-        var playerStatistics = isItPlayer1 ? Player1Statistics : Player2Statistics;
+        var playerStatistics = isItPlayer1 ? Player1_Statistics : Player2_Statistics;
 
         // Make the character die
         player.GetComponent<CharacterMortality>().Die();
@@ -214,6 +244,54 @@ public class GameManager : MonoBehaviour
 
         // Start respawn routine
         StartCoroutine(RespawnRoutine(player, respawnTime));
+    }
+
+    #endregion
+
+    #region Private Methods (Initialization)
+
+    /// <summary>
+    /// Initialize game manager in scene
+    /// </summary>
+    private void InitializeInScene()
+    {
+        // TODO: Load players from inspector as prefab once the input controller will be set up.
+        //       We need to control player controls in code before settings this up.
+
+        // Load players
+        Player1 = GameObject.Find(ObjectNameP1) ?? null;
+        Player2 = GameObject.Find(ObjectNameP2) ?? null;
+
+        // Init spawnpoint lists
+        Player1_SpawnPointList = new List<Transform>();
+        Player2_SpawnPointList = new List<Transform>();
+        // Load spawn points
+        foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP1).transform)
+            Player1_SpawnPointList.Add(child);
+        foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP2).transform)
+            Player2_SpawnPointList.Add(child);
+
+        // Reset temporrary death count
+        Player1_Statistics.ResetTemporaryDeathCount();
+        Player2_Statistics.ResetTemporaryDeathCount();
+
+        // Set camera & player default positions
+        if (CurrentRoom < PreviousRoom) // In P1 territory
+        {
+            var spawnPointP1 = Player1_SpawnPointList[Player1_SpawnPointList.Count - 2]; // Get 2nd farrest spawn point
+            var spawnPointP2 = Player2_SpawnPointList[0]; // Get the closest spawn point to player's home
+            Camera.main.transform.position = new Vector3(spawnPointP1.position.x, spawnPointP1.position.y, Camera.main.transform.position.z);
+            Player1.transform.position = spawnPointP1.position;
+            Player2.transform.position = spawnPointP2.position;
+        }
+        else if (CurrentRoom > PreviousRoom) // In P2 territory
+        {
+            var spawnPointP1 = Player1_SpawnPointList[0]; // Get the closest spawn point to player's home
+            var spawnPointP2 = Player2_SpawnPointList[Player2_SpawnPointList.Count - 2]; // Get 2nd farrest spawn point
+            Camera.main.transform.position = new Vector3(spawnPointP2.position.x, spawnPointP2.position.y, Camera.main.transform.position.z);
+            Player1.transform.position = spawnPointP1.position;
+            Player2.transform.position = spawnPointP2.position;
+        }
     }
 
     #endregion
@@ -241,26 +319,41 @@ public class GameManager : MonoBehaviour
     /// <param name="isDefending">Indicates if the spawnpoint pick should be preferred from the side (TRUE) or from the center (FALSE)</param>
     private void SetRespawnPosition(GameObject player, bool isDefending)
     {
+        var isItPlayer1 = IsItPlayer1(player);
+
         // Get spawn point list
-        var spawnPointList = IsItPlayer1(player) ? Player1SpawnPointList : Player2SpawnPointList;
+        var spawnPointList = isItPlayer1 ? Player1_SpawnPointList : Player2_SpawnPointList;
+        // Get opposite player
+        var oppositePlayer = isItPlayer1 ? Player2 : Player1;
 
         // Default return value
-        Transform spawnPoint = spawnPointList[0];
+        Transform spawnPoint = null;
 
         for (int i = 0; i < spawnPointList.Count; i++)
         {
             // Get screen point of the spawn point
             Vector3 screenPoint = Camera.main.WorldToViewportPoint(spawnPointList[i].position);
             // Check if the spawn point is on the user screen
-            bool onScreen = screenPoint.x > 0 && screenPoint.x < 1 && screenPoint.y > 0 && screenPoint.y < 1;
+            bool isOnScreen = screenPoint.x > 0 && screenPoint.x < 1 && screenPoint.y > 0 && screenPoint.y < 1;
 
             // Take the spawn point while on screen
-            if (onScreen)
+            if (isOnScreen) 
+            {
+                // Do not spawn player behind the other one
+                if (spawnPoint != null && (isItPlayer1 ? oppositePlayer.transform.position.x < spawnPointList[i].position.x : oppositePlayer.transform.position.x < spawnPointList[i].position.x))
+                    break;
+
+                // Save it
                 spawnPoint = spawnPointList[i];
+            }
             // If we want take defending spawn point pick the first one on screen
-            if (onScreen && isDefending)
+            if (isOnScreen && isDefending)
                 break;
         }
+
+        // Make sure we have spawn point
+        if (spawnPoint == null)
+            spawnPoint = spawnPointList[0];
 
         // Set respawn position
         player.transform.position = spawnPoint.position;
@@ -281,11 +374,19 @@ public class GameManager : MonoBehaviour
         // Wait the respawn time
         yield return new WaitForSeconds(respawnTime);
 
+        // Break out of the execution if the character instance does not exist anymore
+        // Switching game rooms may trigger this...
+        if (player == null)
+            yield break;
+
         // Disable camera movement
         Camera.main.GetComponent<FollowingCamera>().IsFollowingAllowed = false;
 
         // Set respawn position
-        SetRespawnPosition(player, true); // TODO: set defending (bool) by the map level
+        SetRespawnPosition(
+            player, 
+            IsItPlayer1(player) ? !IsAttackerPlayer1 : !IsAttackerPlayer2 // Is defending?
+            );
 
         // Revive the character
         player.GetComponent<CharacterMortality>().Revive();

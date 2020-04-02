@@ -11,10 +11,12 @@ GameObject:
   - component: {fileID: 6209573949712675332}
   - component: {fileID: 6209573949712675335}
   - component: {fileID: 6209573949712675334}
+  - component: {fileID: 2960729836973474970}
   - component: {fileID: 6209573949712675329}
-  - component: {fileID: 6209573949712675328}
-  m_Layer: 11
-  m_Name: Projectile
+  - component: {fileID: 6265373793341756609}
+  - component: {fileID: -140577484762615249}
+  m_Layer: 13
+  m_Name: ProjectileItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -99,12 +101,28 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 0
+  m_GravityScale: 1
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
-  m_Constraints: 0
+  m_Constraints: 4
+--- !u!58 &2960729836973474970
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6209573949712675331}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 6200000, guid: 3e04130998c22614483daa3e3d98adad, type: 2}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.0625
 --- !u!58 &6209573949712675329
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -116,12 +134,12 @@ CircleCollider2D:
   m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 1
-  m_UsedByEffector: 0
+  m_UsedByEffector: 1
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.0625
---- !u!114 &6209573949712675328
+--- !u!114 &6265373793341756609
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -130,10 +148,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 6209573949712675331}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c133fd5914588b40a79f4723499dec9, type: 3}
+  m_Script: {fileID: 11500000, guid: 705b57adb815595479386a2a93b8794b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 6209573949712675334}
-  projectileItemPrefab: {fileID: 6209573949712675331, guid: 5dd0302bca9b2f042821d9a06618fc56,
-    type: 3}
-  speed: 12
+--- !u!250 &-140577484762615249
+PointEffector2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6209573949712675331}
+  m_Enabled: 1
+  m_UseColliderMask: 1
+  m_ColliderMask:
+    serializedVersion: 2
+    m_Bits: 512
+  m_ForceMagnitude: -10
+  m_ForceVariation: 0
+  m_DistanceScale: 1
+  m_ForceSource: 0
+  m_ForceTarget: 0
+  m_ForceMode: 0
+  m_Drag: 0
+  m_AngularDrag: 0
