@@ -5162,6 +5162,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player_1
       objectReference: {fileID: 0}
+    - target: {fileID: 5194903064893317529, guid: bcb5b0cc55fba6d42aa796a42c76fdc2,
+        type: 3}
+      propertyPath: m_AngularDrag
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5194903064893317530, guid: bcb5b0cc55fba6d42aa796a42c76fdc2,
         type: 3}
       propertyPath: m_LocalPosition.x

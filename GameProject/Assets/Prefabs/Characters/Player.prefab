@@ -290,6 +290,7 @@ MonoBehaviour:
     type: 3}
   meleeFireCollider: {fileID: 4625867374860016447}
   fireSpeed: 0.7
+  quiver: 10
   fireOriginOffset: {x: 0.5, y: 0.2, z: 0}
   rangedFireDelay: 0.4
   meleeFireDelay: 0.4
