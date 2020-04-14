@@ -528,11 +528,13 @@ public class CharacterFighting : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
 
+#if (UNITY_EDITOR)
         // Draw ground smash AoE
         UnityEditor.Handles.color = Color.cyan;
         //Gizmos.DrawSphere(transform.position - new Vector3(0, -groundSmashGroundOffset, 0), groundSmashEffectRange);
         UnityEditor.Handles.DrawLine(transform.position - new Vector3(groundSmashEffectRange, -groundSmashGroundOffset, 0), transform.position + new Vector3(groundSmashEffectRange, groundSmashGroundOffset, 0));
         UnityEditor.Handles.DrawWireArc(transform.position - new Vector3(0, -groundSmashGroundOffset, 0), new Vector3(1, 0, 10f), new Vector3(1, 0, 0), 180, groundSmashEffectRange);
+#endif
     }
 
     #endregion
