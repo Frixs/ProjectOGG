@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6209573949712675332}
   - component: {fileID: 6209573949712675335}
+  - component: {fileID: 2885674553155591701}
   - component: {fileID: 6209573949712675334}
-  - component: {fileID: 6209573949712675329}
+  - component: {fileID: 1183548758411209064}
   - component: {fileID: 6209573949712675328}
   m_Layer: 11
   m_Name: Projectile
@@ -73,7 +74,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 42e16fcb01ec96b45b9c863f5633a888, type: 3}
+  m_Sprite: {fileID: 6185863188905829874, guid: 934ec3d9036847e419251e2085941225,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -84,6 +86,25 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &2885674553155591701
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6209573949712675331}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 9691cef7d5e0f594b96ecefaed8068da, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!50 &6209573949712675334
 Rigidbody2D:
   serializedVersion: 4
@@ -105,8 +126,8 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!58 &6209573949712675329
-CircleCollider2D:
+--- !u!61 &1183548758411209064
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -118,9 +139,19 @@ CircleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.55, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2.5, y: 2.5}
+    newSize: {x: 0.08, y: 0.08}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
   serializedVersion: 2
-  m_Radius: 0.0625
+  m_Size: {x: 0.3, y: 0.12}
+  m_EdgeRadius: 0
 --- !u!114 &6209573949712675328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,7 +164,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c133fd5914588b40a79f4723499dec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 6209573949712675334}
   projectileItemPrefab: {fileID: 6209573949712675331, guid: 5dd0302bca9b2f042821d9a06618fc56,
     type: 3}
   speed: 12

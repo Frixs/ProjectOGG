@@ -246,6 +246,20 @@ public class GameManager : MonoBehaviour
         StartCoroutine(RespawnRoutine(player, respawnTime));
     }
 
+    /// <summary>
+    /// Check if the name belongs to player 1 (TRUE) or not (FALSE)
+    /// </summary>
+    /// <param name="playerName">The player name</param>
+    /// <returns>The name belongs to player 1 (TRUE), otherwise FALSE</returns>
+    public bool IsItPlayer1(string playerName) => playerName.Equals(Player1.name) ? true : false;
+
+    /// <summary>
+    /// Check if the gameobject is player 1 (TRUE) or not (FALSE)
+    /// </summary>
+    /// <param name="player">The player object</param>
+    /// <returns>TRUE if the object is player 1, otherwise FALSE</returns>
+    public bool IsItPlayer1(GameObject player) => IsItPlayer1(player.name);
+
     #endregion
 
     #region Private Methods (Initialization)
@@ -297,20 +311,6 @@ public class GameManager : MonoBehaviour
     #endregion
 
     #region Private Methods
-
-    /// <summary>
-    /// Check if the name belongs to player 1 (TRUE) or not (FALSE)
-    /// </summary>
-    /// <param name="playerName">The player name</param>
-    /// <returns>The name belongs to player 1 (TRUE), otherwise FALSE</returns>
-    private bool IsItPlayer1(string playerName) => playerName.Equals(Player1.name) ? true : false;
-
-    /// <summary>
-    /// Check if the gameobject is player 1 (TRUE) or not (FALSE)
-    /// </summary>
-    /// <param name="player">The player object</param>
-    /// <returns>TRUE if the object is player 1, otherwise FALSE</returns>
-    private bool IsItPlayer1(GameObject player) => IsItPlayer1(player.name);
 
     /// <summary>
     /// Set respawn position

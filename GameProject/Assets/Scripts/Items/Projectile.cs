@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 /// <summary>
 /// Logic for character projectiles
@@ -85,6 +86,9 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // Name of the trigger event
+        string triggerEvent = "Hit";
+
         // Player collision
         if (collision.gameObject.layer == LayerMask.NameToLayer(nameof(LayerName.Player)))
         {
@@ -100,17 +104,58 @@ public class Projectile : MonoBehaviour
             if (collision.gameObject.GetComponent<CharacterMortality>().IsDeath)
                 return;
 
+            // Trigger hit event
+            GetComponent<Animator>().SetTrigger(triggerEvent);
+
             // Rebirth the player
             GameManager.Instance.Rebirth(collision.gameObject.name);
+
+            // Destroy (faster)
+            StartCoroutine(DelayedProjectileDestroy(0.1f, false));
         }
-        // Otherwise...
-        else
+        // Otherwise
         {
-            var item = Instantiate(projectileItemPrefab, gameObject.transform.position, Quaternion.identity);
+            // Trigger hit event
+            GetComponent<Animator>().SetTrigger(triggerEvent);
         }
+
+        // Destroy
+        StartCoroutine(DelayedProjectileDestroy(0.35f, true));
+    }
+
+    #endregion
+
+    #region Private Helpers
+
+    /// <summary>
+    /// Projectile destroy with a delay
+    /// </summary>
+    /// <param name="delay">The delay</param>
+    /// <param name="instantiateItem">Indicates if we should instantiate item on destroy (TRUE) or not (FALSE)</param>
+    /// <returns></returns>
+    private IEnumerator DelayedProjectileDestroy(float delay, bool instantiateItem)
+    {
+        // Stop projectile
+        _rb.velocity = Vector2.zero;
+
+        // Delay
+        yield return new WaitForSeconds(delay);
+
+        // If item instantiation is requested...
+        if (instantiateItem)
+            InstantiateItem(true);
 
         // Destroy projectile
         Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Instantiate projectile item
+    /// </summary>
+    private void InstantiateItem(bool rotate)
+    {
+        var item = Instantiate(projectileItemPrefab, gameObject.transform.position, Quaternion.identity);
+        item.transform.Rotate(0, 0, -90);
     }
 
     #endregion

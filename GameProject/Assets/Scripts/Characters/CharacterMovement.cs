@@ -214,11 +214,16 @@ public class CharacterMovement : MonoBehaviour
     /// Indicates if rigidbody force is allowed to apply
     /// ---
     /// If character is not fighting currently...
+    /// If character is not ground smashing currently...
     /// If character is out of crouch...
     /// If character is not in slide...
     /// </summary>
+    /// <remarks>
+    ///     You can only flip character, you cannot move if it is NOT allowed.
+    /// </remarks>
     public bool IsMovementForceAllowed =>
         (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingFireFlag)) &&
+        (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingGroundSmashFlag)) &&
         !HasCrouchPress &&
         !IsInSlide;
 
@@ -226,11 +231,17 @@ public class CharacterMovement : MonoBehaviour
     /// Indicates if crouch and slide are allowed to perform
     /// ---
     /// If character is not fighting currently...
+    /// If character is not air-diving currently...
+    /// If character is not ground smashing currently...
     /// If character is not in dodge...
+    /// If character is grounded...
     /// </summary>
     public bool IsCrouchSlideAllowed =>
         (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingFireFlag)) &&
-        (!_characterEvading || (_characterEvading && !_characterEvading.IsInDodge));
+        (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingAirDiveFlag)) &&
+        (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingGroundSmashFlag)) &&
+        (!_characterEvading || (_characterEvading && !_characterEvading.IsInDodge)) &&
+        IsGrounded;
 
     #endregion
 
@@ -278,7 +289,7 @@ public class CharacterMovement : MonoBehaviour
         get => _hasCrouchPress;
         set
         {
-            if (!value && !IsInSlide) // Wants to return to orig size and character is out of slide too
+            if (!value && !IsInSlide && (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingGroundSmashFlag))) // Wants to return to orig size and character is out of slide too
                 ColliderChangeToOriginal();
             else if (value && IsGrounded && IsCrouchSlideAllowed)
                 ColliderChangeToCrouch();
@@ -399,18 +410,14 @@ public class CharacterMovement : MonoBehaviour
             AirJump();
 
         // Slide (crouch)
-        if (SlideTime > Time.time && SlideCooldownTimer + slideCooldown < Time.time && IsGrounded)
+        if (SlideTime > Time.time && SlideCooldownTimer + slideCooldown < Time.time)
             if (IsCrouchSlideAllowed)
                 Slide();
 
         // Crouch
-        if (CrouchTime > Time.time && IsGrounded)
+        if (CrouchTime > Time.time)
             if (IsCrouchSlideAllowed)
                 Crouch();
-            else if (CrouchTime > Time.time && !IsGrounded)
-            {
-                // TODO: Air-ground smash
-            }
 
         // Modify physics
         ModifyPhysics();
@@ -504,7 +511,7 @@ public class CharacterMovement : MonoBehaviour
     /// <summary>
     /// Update collider to fit crouch position
     /// </summary>
-    private void ColliderChangeToCrouch()
+    public void ColliderChangeToCrouch()
     {
         // Update collider
         _characterCollider.size = new Vector2(_characterCollider.size.x, _colliderOriginalSizeY - _colliderCrouchSizeChangeY);

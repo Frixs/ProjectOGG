@@ -85,6 +85,14 @@ public class FollowingCamera : MonoBehaviour
     /// </summary>
     private void Start()
     {
+        // If target objects does not exist...
+        if (obj1 == null && obj2 == null)
+        {
+            // Try to look for player objects (as default) in the scene...
+            obj1 = GameObject.Find(GameManager.Instance.ObjectNameP1) ?? null;
+            obj2 = GameObject.Find(GameManager.Instance.ObjectNameP2) ?? null;
+        }
+
         _threashold = CalculateThreshold();
         _rbObj1 = obj1.GetComponent<Rigidbody2D>();
         _rbObj2 = obj2.GetComponent<Rigidbody2D>();

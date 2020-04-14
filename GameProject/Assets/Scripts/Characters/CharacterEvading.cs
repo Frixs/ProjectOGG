@@ -20,6 +20,16 @@ public class CharacterEvading : MonoBehaviour
 
     #endregion
 
+    #region Public Members (Components)
+
+    /// <summary>
+    /// Status effect for dodge
+    /// </summary>
+    [Header("Components")]
+    public AStatusEffectBase dodgeInvulnerabilitySE;
+
+    #endregion
+
     #region Public Members (Stats)
 
     /// <summary>
@@ -33,11 +43,6 @@ public class CharacterEvading : MonoBehaviour
     /// </summary>
     public float dodgeJumpStrength = 10.0f;
 
-    /// <summary>
-    /// Status effect for dodge
-    /// </summary>
-    public AStatusEffectBase dodgeInvulnerability;
-
     #endregion
 
     #region Public Properties (Perms)
@@ -46,10 +51,14 @@ public class CharacterEvading : MonoBehaviour
     /// Indicates if <see cref="Fire"/> is allowed...
     /// ---
     /// If character is not in fire...
+    /// If character is not in air dive...
+    /// If character is not in ground smash...
     /// If character is not in slide...
     /// </summary>
     public bool IsDodgeAllowed => 
         (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingFireFlag)) &&
+        (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingAirDiveFlag)) &&
+        (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingGroundSmashFlag)) &&
         !_characterMovement.IsInSlide;
 
     #endregion
@@ -74,6 +83,14 @@ public class CharacterEvading : MonoBehaviour
     /// Indicates if the character is currently in dodge (TRUE) or not (FALSE)
     /// </summary>
     public bool IsInDodge { get; set; }
+
+    /// <summary>
+    /// Indicates if the character is currently different form of evade
+    /// </summary>
+    /// <remarks>
+    ///     Mark for <see cref="CharacterMortality"/>
+    /// </remarks>
+    public bool IsInEvade { get; set; }
 
     #endregion
 
@@ -112,7 +129,7 @@ public class CharacterEvading : MonoBehaviour
         DodgeCooldownTimer = Time.time;
 
         // Apply status effect (invulnerability)
-        StatusEffectManager.Instance.Apply(GetComponent<StatusEffectProcessor>(), null, dodgeInvulnerability);
+        StatusEffectManager.Instance.Apply(GetComponent<StatusEffectProcessor>(), null, dodgeInvulnerabilitySE);
 
         // Perform jump
         _characterMovement.PerformJump(dodgeJumpStrength);

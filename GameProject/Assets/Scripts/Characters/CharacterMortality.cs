@@ -15,6 +15,16 @@ public class CharacterMortality : MonoBehaviour
 
     #endregion
 
+    #region Public Members (Components)
+
+    /// <summary>
+    /// Status effect for respawn
+    /// </summary>
+    [Header("Components")]
+    public AStatusEffectBase respawnInvulnerabilitySE;
+
+    #endregion
+
     #region Public Properties
 
     /// <summary>
@@ -25,7 +35,7 @@ public class CharacterMortality : MonoBehaviour
     /// <summary>
     /// Indicates if the character is invincible (TRUE), or not (FALSE)
     /// </summary>
-    public bool IsInvincible => (_characterEvading && _characterEvading.IsInDodge);
+    public bool IsInvincible => (_characterEvading && (_characterEvading.IsInDodge || _characterEvading.IsInEvade));
 
     #endregion
 
@@ -72,6 +82,9 @@ public class CharacterMortality : MonoBehaviour
 
         // Re-enable player to player collisions
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer(LayerName.Player), LayerMask.NameToLayer(LayerName.Player), false);
+
+        // Apply invulnerability on respawn
+        StatusEffectManager.Instance.Apply(GetComponent<StatusEffectProcessor>(), null, respawnInvulnerabilitySE);
     }
 
     #endregion

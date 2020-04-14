@@ -35,7 +35,7 @@ public class CharacterAnimation : MonoBehaviour
     /// <summary>
     /// Animator parameter - Jump
     /// </summary>
-    private readonly string AnimatorParameterIsInFlight = "IsInFlight";
+    private readonly string AnimatorParameterIsGrounded = "IsGrounded";
 
     /// <summary>
     /// Animator parameter - Death
@@ -48,6 +48,11 @@ public class CharacterAnimation : MonoBehaviour
     private readonly string AnimatorParameterIsInDodge = "IsInDodge";
 
     /// <summary>
+    /// Animator parameter - Slide
+    /// </summary>
+    private readonly string AnimatorParameterIsInGroundSlide = "IsInGroundSlide";
+
+    /// <summary>
     /// Animator parameter - Crouching
     /// </summary>
     private readonly string AnimatorParameterIsCrouching = "IsCrouching";
@@ -56,6 +61,16 @@ public class CharacterAnimation : MonoBehaviour
     /// Animator parameter - IsInFire
     /// </summary>
     private readonly string AnimatorParameterIsPerformingFire = "IsPerformingFire";
+
+    /// <summary>
+    /// Animator parameter - AirDive
+    /// </summary>
+    private readonly string AnimatorParameterIsPerformingAirDive = "IsPerformingAirDive";
+
+    /// <summary>
+    /// Animator parameter - GroundSmash
+    /// </summary>
+    private readonly string AnimatorParameterIsPerformingGroundSmash = "IsPerformingGroundSmash";
 
     #endregion
 
@@ -123,16 +138,25 @@ public class CharacterAnimation : MonoBehaviour
         animator.SetFloat(AnimatorParameterVertical, characterMovement.MoveDirection.y);
 
         // Jump
-        animator.SetBool(AnimatorParameterIsInFlight, !characterMovement.IsGrounded);
+        animator.SetBool(AnimatorParameterIsGrounded, characterMovement.IsGrounded);
 
         // Dodge
         if (characterEvading) animator.SetBool(AnimatorParameterIsInDodge, characterEvading.IsInDodge);
+
+        // Slide
+        animator.SetBool(AnimatorParameterIsInGroundSlide, characterMovement.IsInSlide);
 
         // Crouch
         animator.SetBool(AnimatorParameterIsCrouching, characterMovement.HasCrouchPress || characterMovement.IsInSlide);
 
         // IsPerformingFire
         animator.SetBool(AnimatorParameterIsPerformingFire, characterFighting.IsPerformingFireFlag);
+
+        // IsPerformingAirDive
+        animator.SetBool(AnimatorParameterIsPerformingAirDive, characterFighting.IsPerformingAirDiveFlag);
+
+        // IsPerformingGroundSmash
+        animator.SetBool(AnimatorParameterIsPerformingGroundSmash, characterFighting.IsPerformingGroundSmashFlag);
     }
 
     #endregion

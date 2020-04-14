@@ -128,6 +128,10 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(keyControlFire) && _characterFighting != null)
             _characterFighting.FireTime = Time.time + _actionDelay;
 
+        // Air Dive (+ check if fighting component is available)
+        if (Input.GetKey(keyControlDown) && _characterFighting != null)
+            _characterFighting.AirDiveTime = Time.time + _actionDelay;
+
         // Dodge (+ check if evading component is available)
         if (Input.GetKey(keyControlDodge) && _characterEvading != null)
             _characterEvading.DodgeTime = Time.time + _actionDelay;
