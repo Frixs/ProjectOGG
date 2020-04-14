@@ -380,7 +380,7 @@ public class GameManager : MonoBehaviour
             yield break;
 
         // Disable camera movement
-        Camera.main.GetComponent<FollowingCamera>().IsFollowingAllowed = false;
+        //Camera.main.GetComponent<FollowingCamera>().IsFollowingAllowed = false;
 
         // Set respawn position
         SetRespawnPosition(

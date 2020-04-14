@@ -52,6 +52,8 @@ public class FollowingCamera : MonoBehaviour
     /// </summary>
     public Vector2 followOffset;
 
+    public Vector2 cameraOffset;
+
     #endregion
 
     #region Public Properties
@@ -111,13 +113,21 @@ public class FollowingCamera : MonoBehaviour
 
         // Get follow position
         Vector2 follow = FollowedObject.transform.position;
+        if (FollowFirstObject)
+        {
+            follow += cameraOffset;
+        }
+        else {
+            follow -= cameraOffset;
+        }
 
         float xDifference = Vector2.Distance(Vector2.right * transform.position.x, Vector2.right * follow.x);
         float yDifference = Vector2.Distance(Vector2.up * transform.position.y, Vector2.up * follow.y);
 
         Vector3 newPosition = transform.position;
-        if (Mathf.Abs(xDifference) >= _threashold.x)
-            newPosition.x = follow.x;
+        //if (Mathf.Abs(xDifference) >= _threashold.x)
+        
+        newPosition.x = follow.x;
         if (Mathf.Abs(yDifference) >= _threashold.y)
             newPosition.y = follow.y;
 
