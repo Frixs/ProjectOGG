@@ -274,15 +274,21 @@ public class CharacterFighting : MonoBehaviour
     }
 
     /// <summary>
+    /// Update is called once per frame
+    /// </summary>
+    private void Update()
+    {
+        // Calculate allowed height for air dive
+        // TODO: Create helper static class with all these collider & physics modifiers
+        HasAirDiveAllowedHeight = !Physics2D.Raycast(_characterMovement.groundDetectionLeftColliderOffset.position, Vector2.down, airDiveMinimalAllowedGroundDetectionColliderHeight, _characterMovement.groundLayer) &&
+            !Physics2D.Raycast(_characterMovement.groundDetectionRightColliderOffset.position, Vector2.down, airDiveMinimalAllowedGroundDetectionColliderHeight, _characterMovement.groundLayer);
+    }
+
+    /// <summary>
     /// Fixed update
     /// </summary>
     private void FixedUpdate()
     {
-        // Calculate allowed height for air dive
-        // TODO: Create helper static class with all these collider & physics modifiers
-        HasAirDiveAllowedHeight = !Physics2D.Raycast(_characterMovement.groundDetectionLeftColliderOffset.position, Vector2.down, airDiveMinimalAllowedGroundDetectionColliderHeight, _characterMovement.groundLayer) && 
-            !Physics2D.Raycast(_characterMovement.groundDetectionRightColliderOffset.position, Vector2.down, airDiveMinimalAllowedGroundDetectionColliderHeight, _characterMovement.groundLayer);
-
         // Fighting action triggers
         if (AllowFighting)
         {
@@ -573,8 +579,8 @@ public class CharacterFighting : MonoBehaviour
 
         // Draw air dive collider triggers
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(GetComponent<CharacterMovement>().groundDetectionLeftColliderOffset.position, GetComponent<CharacterMovement>().groundDetectionLeftColliderOffset.position  + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
-        Gizmos.DrawLine(GetComponent<CharacterMovement>().groundDetectionRightColliderOffset.position, GetComponent<CharacterMovement>().groundDetectionRightColliderOffset.position  + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
+        Gizmos.DrawLine(GetComponent<CharacterMovement>().groundDetectionLeftColliderOffset.position, GetComponent<CharacterMovement>().groundDetectionLeftColliderOffset.position + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
+        Gizmos.DrawLine(GetComponent<CharacterMovement>().groundDetectionRightColliderOffset.position, GetComponent<CharacterMovement>().groundDetectionRightColliderOffset.position + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
 
 #if (UNITY_EDITOR)
         // Draw ground smash AoE
