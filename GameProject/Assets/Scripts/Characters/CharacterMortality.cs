@@ -47,6 +47,9 @@ public class CharacterMortality : MonoBehaviour
     private void Start()
     {
         _characterEvading = GetComponent<CharacterEvading>();
+
+        // Make sure to always have player alived on creation
+        Revive();
     }
 
     /// <summary>

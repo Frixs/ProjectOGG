@@ -310,7 +310,7 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Private Methods
+    #region Private Helpers
 
     /// <summary>
     /// Set respawn position
@@ -358,10 +358,6 @@ public class GameManager : MonoBehaviour
         // Set respawn position
         player.transform.position = spawnPoint.position;
     }
-
-    #endregion
-
-    #region Coroutines
 
     /// <summary>
     /// Respawn routine

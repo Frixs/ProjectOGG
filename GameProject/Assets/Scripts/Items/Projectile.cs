@@ -92,23 +92,26 @@ public class Projectile : MonoBehaviour
         // Player collision
         if (collision.gameObject.layer == LayerMask.NameToLayer(nameof(LayerName.Player)))
         {
+            // Get player root GO
+            GameObject playerRoot = collision.gameObject.GetTopParent(LayerMask.NameToLayer(nameof(LayerName.Player)));
+
             // If the collision is the caster...
-            if (collision.gameObject.name.Equals(Caster.name))
+            if (playerRoot.name.Equals(Caster.name))
                 return;
 
             // Ignoring, character is invincible
-            if (collision.gameObject.GetComponent<CharacterMortality>().IsInvincible)
+            if (playerRoot.GetComponent<CharacterMortality>().IsInvincible)
                 return;
 
             // Ignoring, character is death (corpse)
-            if (collision.gameObject.GetComponent<CharacterMortality>().IsDeath)
+            if (playerRoot.GetComponent<CharacterMortality>().IsDeath)
                 return;
 
             // Trigger hit event
             GetComponent<Animator>().SetTrigger(triggerEvent);
 
             // Rebirth the player
-            GameManager.Instance.Rebirth(collision.gameObject.name);
+            GameManager.Instance.Rebirth(playerRoot.name);
 
             // Destroy (faster)
             StartCoroutine(DelayedProjectileDestroy(0.1f, false));

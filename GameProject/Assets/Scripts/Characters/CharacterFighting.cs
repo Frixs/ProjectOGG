@@ -19,6 +19,11 @@ public class CharacterFighting : MonoBehaviour
     /// </summary>
     private CharacterEvading _characterEvading;
 
+    /// <summary>
+    /// Indicates if the character is currently in charging part of the air dive
+    /// </summary>
+    private bool _isInAirDiveCharging;
+
     #endregion
 
     #region Public Members (Components)
@@ -75,7 +80,19 @@ public class CharacterFighting : MonoBehaviour
     /// <summary>
     /// Vertical strength of the air dive
     /// </summary>
-    public float airDiveStrength = 30f;
+    public float airDiveFallStrength = 30f;
+
+    /// <summary>
+    /// Once the velocity go under this value, the fall strength will get reactivate.
+    /// </summary>
+    /// <remarks>
+    ///     If the player hold the air dive and something push the character again into the air...
+    ///     We do not want to slowly stop in the air-dive... so lets reactivate it once it is around zero speed
+    ///     
+    ///     If something throw character into the air while air-dive... lets put this threshold slightly under zero...
+    ///     ... once the character stops by the gravity in the air and start falling again back to the ground it gets this threshold into the work.
+    /// </remarks>
+    public float airDiveFallStrengthReactivationThreshold = -0.5f;
 
     /// <summary>
     /// Strength of the air dive pre-jump
@@ -145,7 +162,7 @@ public class CharacterFighting : MonoBehaviour
         !IsPerformingGroundSmashFlag;
 
     /// <summary>
-    /// Indicates if <see cref="AirDive"/> is allowed...
+    /// Indicates if <see cref="ChargeAirDive"/> is allowed...
     /// ---
     /// If allowed height for air dive is OK...
     /// If character is not evading...
@@ -179,6 +196,12 @@ public class CharacterFighting : MonoBehaviour
     #endregion
 
     #region Public Properties
+
+    /// <summary>
+    /// Indicates if this component is allowed to use
+    /// TODO: Make interface for all character components to share the same logic
+    /// </summary>
+    public bool AllowFighting { get; set; } = true;
 
     /// <summary>
     /// How long it is since the last fire press
@@ -257,25 +280,27 @@ public class CharacterFighting : MonoBehaviour
     {
         // Calculate allowed height for air dive
         // TODO: Create helper static class with all these collider & physics modifiers
-        HasAirDiveAllowedHeight = !Physics2D.Raycast(
-            transform.position + _characterMovement.groundDetectionColliderOffset,
-            Vector2.down, airDiveMinimalAllowedGroundDetectionColliderHeight, _characterMovement.groundLayer) && !Physics2D.Raycast(transform.position - _characterMovement.groundDetectionColliderOffset, Vector2.down,
-            airDiveMinimalAllowedGroundDetectionColliderHeight,
-            _characterMovement.groundLayer
-            );
+        HasAirDiveAllowedHeight = !Physics2D.Raycast(_characterMovement.groundDetectionLeftColliderOffset.position, Vector2.down, airDiveMinimalAllowedGroundDetectionColliderHeight, _characterMovement.groundLayer) && 
+            !Physics2D.Raycast(_characterMovement.groundDetectionRightColliderOffset.position, Vector2.down, airDiveMinimalAllowedGroundDetectionColliderHeight, _characterMovement.groundLayer);
 
-        // Fire
-        if (FireTime > Time.time && FireCooldownTimer + fireSpeed < Time.time)
-            if (IsFireAllowed)
-                if (!GameManager.Instance.IsMeleeDistance && quiver > 0)
-                    StartCoroutine(RangedFire());
-                else
-                    StartCoroutine(MeleeFire());
+        // Fighting action triggers
+        if (AllowFighting)
+        {
+            // Fire
+            if (FireTime > Time.time && FireCooldownTimer + fireSpeed < Time.time)
+                if (IsFireAllowed)
+                    if (!GameManager.Instance.IsMeleeDistance && quiver > 0)
+                        StartCoroutine(RangedFire());
+                    else
+                        StartCoroutine(MeleeFire());
 
-        // AirDive
-        if (AirDiveTime > Time.time && AirDiveCooldownTimer + airDiveCooldown < Time.time)
-            if (IsAirDiveAllowed)
-                AirDive();
+            // AirDive
+            if (AirDiveTime > Time.time && AirDiveCooldownTimer + airDiveCooldown < Time.time)
+                if (IsAirDiveAllowed)
+                    ChargeAirDive();
+        }
+
+        // Handle air dive
         if (IsPerformingAirDiveFlag)
         {
             // If crouch is not pressed and character is not performing ground smash...
@@ -287,6 +312,11 @@ public class CharacterFighting : MonoBehaviour
             else if (_characterMovement.IsGrounded && !IsPerformingGroundSmashFlag)
                 // Perform ground smash
                 PerformGroundSmash();
+
+            // If character is not in 1st phase (charging) AND character is not grounded AND character velocity is is lower than the threshold for reactivation
+            else if (!_isInAirDiveCharging && !_characterMovement.IsGrounded && _characterMovement.rb.velocity.y < airDiveFallStrengthReactivationThreshold)
+                // Keep the strength of the dive
+                ApplyAirDiveForce();
         }
     }
 
@@ -297,13 +327,15 @@ public class CharacterFighting : MonoBehaviour
     /// <summary>
     /// Handled character air dive
     /// </summary>
-    private void AirDive()
+    private void ChargeAirDive()
     {
         // Update cooldown
         AirDiveCooldownTimer = Time.time;
 
         // Turn on indication of performing air dive
         IsPerformingAirDiveFlag = true;
+        // Turn on indication as a beginning of the first phase of air dive - charging
+        _isInAirDiveCharging = true;
 
         // Stop character
         _characterMovement.rb.velocity = new Vector2(0, _characterMovement.rb.velocity.y);
@@ -324,8 +356,20 @@ public class CharacterFighting : MonoBehaviour
         // Delay air dive
         yield return new WaitForSeconds(airDiveDelay);
 
+        // Turn off indication as a ending of the first phase of air dive - charging
+        _isInAirDiveCharging = false;
+
         // Dive character
-        _characterMovement.rb.velocity = new Vector2(0, -airDiveStrength);
+        ApplyAirDiveForce();
+    }
+
+    /// <summary>
+    /// Apply Air Dive velocity/force
+    /// </summary>
+    private void ApplyAirDiveForce()
+    {
+        // Dive
+        _characterMovement.rb.velocity = new Vector2(0, -airDiveFallStrength);
     }
 
     #endregion
@@ -497,20 +541,23 @@ public class CharacterFighting : MonoBehaviour
         // Player collision
         if (collision.gameObject.layer == LayerMask.NameToLayer(nameof(LayerName.Player)))
         {
+            // Get player root GO
+            GameObject playerRoot = collision.gameObject.GetTopParent(LayerMask.NameToLayer(nameof(LayerName.Player)));
+
             // If the collision is the caster...
-            if (collision.gameObject.name.Equals(gameObject.name))
+            if (playerRoot.name.Equals(gameObject.name))
                 return;
 
             // Ignoring, character is invincible
-            if (collision.gameObject.GetComponent<CharacterMortality>().IsInvincible)
+            if (playerRoot.GetComponent<CharacterMortality>().IsInvincible)
                 return;
 
             // Ignoring, character is death (corpse)
-            if (collision.gameObject.GetComponent<CharacterMortality>().IsDeath)
+            if (playerRoot.GetComponent<CharacterMortality>().IsDeath)
                 return;
 
             // Rebirth the player
-            GameManager.Instance.Rebirth(collision.gameObject.name);
+            GameManager.Instance.Rebirth(playerRoot.name);
         }
     }
 
@@ -526,7 +573,8 @@ public class CharacterFighting : MonoBehaviour
 
         // Draw air dive collider triggers
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, transform.position + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
+        Gizmos.DrawLine(GetComponent<CharacterMovement>().groundDetectionLeftColliderOffset.position, GetComponent<CharacterMovement>().groundDetectionLeftColliderOffset.position  + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
+        Gizmos.DrawLine(GetComponent<CharacterMovement>().groundDetectionRightColliderOffset.position, GetComponent<CharacterMovement>().groundDetectionRightColliderOffset.position  + Vector3.down * airDiveMinimalAllowedGroundDetectionColliderHeight);
 
 #if (UNITY_EDITOR)
         // Draw ground smash AoE

@@ -24,7 +24,7 @@ public class CharacterUnarm : AStatusEffectBase
     /// <inheritdoc/>
     protected override void Activate()
     {
-        Target.GetComponent<CharacterFighting>().enabled = false;
+        Target.GetComponent<CharacterFighting>().AllowFighting = false;
     }
 
     /// <inheritdoc/>
@@ -35,7 +35,7 @@ public class CharacterUnarm : AStatusEffectBase
     /// <inheritdoc/>
     protected override void End()
     {
-        Target.GetComponent<CharacterFighting>().enabled = true;
+        Target.GetComponent<CharacterFighting>().AllowFighting = true;
     }
 
     /// <inheritdoc/>

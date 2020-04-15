@@ -41,12 +41,15 @@ public class ProjectileItem : MonoBehaviour
         // Player collision
         if (collision.gameObject.layer == LayerMask.NameToLayer(nameof(LayerName.Player)))
         {
+            // Get player root GO
+            GameObject playerRoot = collision.gameObject.GetTopParent(LayerMask.NameToLayer(nameof(LayerName.Player)));
+
             // Ignoring, character is death (corpse)
-            if (collision.gameObject.GetComponent<CharacterMortality>().IsDeath)
+            if (playerRoot.GetComponent<CharacterMortality>().IsDeath)
                 return;
 
             // Increment quiver if fighting component exists...
-            var component = collision.gameObject.GetComponent<CharacterFighting>();
+            var component = playerRoot.GetComponent<CharacterFighting>();
             if (component != null) 
             {
                 // Increment

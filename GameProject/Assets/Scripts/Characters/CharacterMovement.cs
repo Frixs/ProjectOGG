@@ -29,11 +29,6 @@ public class CharacterMovement : MonoBehaviour
     /// </summary>
     private CharacterEvading _characterEvading;
 
-    /// <summary>
-    /// Character collider component reference
-    /// </summary>
-    private BoxCollider2D _characterCollider;
-
     #endregion
 
     #region Private Members (Properties)
@@ -43,25 +38,6 @@ public class CharacterMovement : MonoBehaviour
 
     /// <inheritdoc cref="IsInSlide"/>
     private bool _isInSlide;
-
-    #endregion
-
-    #region Private Members (Collider change)
-
-    /// <summary>
-    /// Holds original collider Y size
-    /// </summary>
-    private float _colliderOriginalSizeY;
-
-    /// <summary>
-    /// Holds original collider Y offset
-    /// </summary>
-    private float _colliderOriginalOffsetY;
-
-    /// <summary>
-    /// Holds collider crouch size change
-    /// </summary>
-    private float _colliderCrouchSizeChangeY;
 
     #endregion
 
@@ -82,6 +58,11 @@ public class CharacterMovement : MonoBehaviour
     /// Character holder object reference
     /// </summary>
     public GameObject characterHolderObject;
+
+    /// <summary>
+    /// Character upper body collider component reference
+    /// </summary>
+    public GameObject characterUpperBodyCollider;
 
     #endregion
 
@@ -186,10 +167,15 @@ public class CharacterMovement : MonoBehaviour
     public float groundDetectionColliderHeight = 0.5f;
 
     /// <summary>
-    /// Offset between raycast indicators of the ground
-    /// Gap between 2 detectors
+    /// Offset for the left-side raycast indicator of the ground
+    /// TODO: Make spceial wrapper for ground detectors
     /// </summary>
-    public Vector3 groundDetectionColliderOffset;
+    public Transform groundDetectionLeftColliderOffset;
+
+    /// <summary>
+    /// Offset for the right-side raycast indicator of the ground
+    /// </summary>
+    public Transform groundDetectionRightColliderOffset;
 
     #endregion
 
@@ -360,14 +346,12 @@ public class CharacterMovement : MonoBehaviour
         _characterFighting = GetComponent<CharacterFighting>();
         _characterEvading = GetComponent<CharacterEvading>();
 
-        _characterCollider = (BoxCollider2D)GetComponent<Collider2D>();
-        _colliderOriginalSizeY = _characterCollider.size.y;
-        _colliderOriginalOffsetY = _characterCollider.offset.y;
-        _colliderCrouchSizeChangeY = _characterCollider.size.y / 2;
-
         // Initial direction flip
         if (!isFacingRight)
-            transform.rotation = Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
+        {
+            isFacingRight = !isFacingRight; // Reflip
+            FlipDirection();
+        }
     }
 
     /// <summary>
@@ -377,14 +361,10 @@ public class CharacterMovement : MonoBehaviour
     {
         // Save previous grounded state
         bool wasGrounded = IsGrounded;
-
+        
         // Check grounded state...
-        IsGrounded = Physics2D.Raycast(
-            transform.position + groundDetectionColliderOffset,
-            Vector2.down, groundDetectionColliderHeight, groundLayer) || Physics2D.Raycast(transform.position - groundDetectionColliderOffset, Vector2.down,
-            groundDetectionColliderHeight,
-            groundLayer
-            );
+        IsGrounded = Physics2D.Raycast(groundDetectionLeftColliderOffset.position, Vector2.down, groundDetectionColliderHeight, groundLayer) || 
+            Physics2D.Raycast(groundDetectionRightColliderOffset.position, Vector2.down, groundDetectionColliderHeight, groundLayer);
 
         // If we were not in the ground but then detected ground collision (just landed)...
         if (!wasGrounded && IsGrounded)
@@ -514,20 +494,17 @@ public class CharacterMovement : MonoBehaviour
     public void ColliderChangeToCrouch()
     {
         // Update collider
-        _characterCollider.size = new Vector2(_characterCollider.size.x, _colliderOriginalSizeY - _colliderCrouchSizeChangeY);
-        _characterCollider.offset = new Vector2(_characterCollider.offset.x, _colliderOriginalOffsetY - (_colliderCrouchSizeChangeY / 2));
+        characterUpperBodyCollider.SetActive(false);
     }
 
     /// <summary>
     /// Update collider back to original
     /// TODO: Move character updates into separate component
-    /// TODO: Create multiple colliders each of them for specific position and switch among them by needs, instead of changing parameters
     /// </summary>
     public void ColliderChangeToOriginal()
     {
         // Update collider back to original
-        _characterCollider.size = new Vector2(_characterCollider.size.x, _colliderOriginalSizeY);
-        _characterCollider.offset = new Vector2(_characterCollider.offset.x, _colliderOriginalOffsetY);
+        characterUpperBodyCollider.SetActive(true);
     }
 
     #endregion
@@ -561,7 +538,17 @@ public class CharacterMovement : MonoBehaviour
     private void FlipDirection()
     {
         isFacingRight = !isFacingRight;
-        transform.rotation = Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
+
+        // If facing RIGHT...
+        if (isFacingRight)
+        {
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+        // Otherwise, facing LEFT
+        else
+        {
+            transform.rotation = Quaternion.Euler(0, 180, 0);
+        }
     }
 
     /// <summary>
@@ -651,8 +638,8 @@ public class CharacterMovement : MonoBehaviour
     {
         // Draw jump collider triggers
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position + groundDetectionColliderOffset, transform.position + groundDetectionColliderOffset + Vector3.down * groundDetectionColliderHeight);
-        Gizmos.DrawLine(transform.position - groundDetectionColliderOffset, transform.position - groundDetectionColliderOffset + Vector3.down * groundDetectionColliderHeight);
+        Gizmos.DrawLine(groundDetectionLeftColliderOffset.position, groundDetectionLeftColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
+        Gizmos.DrawLine(groundDetectionRightColliderOffset.position, groundDetectionRightColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
     }
 
     #endregion
