@@ -404,7 +404,7 @@ public class CharacterFighting : MonoBehaviour
         yield return new WaitForSeconds(groundSmashDuration);
 
         // Change collider back to original
-        _characterMovement.ColliderChangeToOriginal();
+        _characterMovement.ColliderChangeToStand();
 
         // Turn off indication of performing ground smash
         IsPerformingGroundSmashFlag = false;
@@ -453,7 +453,7 @@ public class CharacterFighting : MonoBehaviour
         MeleeFireTrigger();
 
         // Set collider to original if not
-        _characterMovement.ColliderChangeToOriginal();
+        _characterMovement.ColliderChangeToStand();
 
         // Delay - half of time to activate DMG collider
         yield return new WaitForSeconds(meleeFireDelay / 2);
@@ -486,7 +486,7 @@ public class CharacterFighting : MonoBehaviour
         RangedFireTrigger();
 
         // Set collider to original if not
-        _characterMovement.ColliderChangeToOriginal();
+        _characterMovement.ColliderChangeToStand();
 
         // Delay
         yield return new WaitForSeconds(rangedFireDelay);

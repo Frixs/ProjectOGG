@@ -29,6 +29,11 @@ public class CharacterMovement : MonoBehaviour
     /// </summary>
     private CharacterEvading _characterEvading;
 
+    /// <summary>
+    /// Character mortality component reference
+    /// </summary>
+    private CharacterMortality _characterMortality;
+
     #endregion
 
     #region Private Members (Properties)
@@ -58,11 +63,6 @@ public class CharacterMovement : MonoBehaviour
     /// Character holder object reference
     /// </summary>
     public GameObject characterHolderObject;
-
-    /// <summary>
-    /// Character upper body collider component reference
-    /// </summary>
-    public GameObject characterUpperBodyCollider;
 
     #endregion
 
@@ -185,7 +185,7 @@ public class CharacterMovement : MonoBehaviour
     /// Delay to perform jump
     /// </summary>
     [Header("Settings")]
-    public float jumpDelay = 0.2f;
+    public float groundJumpDelay = 0.2f;
 
     /// <summary>
     /// Indicates, if the character is facing right (TRUE), otherwise left
@@ -276,7 +276,7 @@ public class CharacterMovement : MonoBehaviour
         set
         {
             if (!value && !IsInSlide && (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingGroundSmashFlag))) // Wants to return to orig size and character is out of slide too
-                ColliderChangeToOriginal();
+                ColliderChangeToStand();
             else if (value && IsGrounded && IsCrouchSlideAllowed)
                 ColliderChangeToCrouch();
 
@@ -297,8 +297,8 @@ public class CharacterMovement : MonoBehaviour
             if (value != _isInSlide)
             {
                 if (!value && !HasCrouchPress) // Wants to return to orig size and character is out of crouch too
-                    ColliderChangeToOriginal();
-                else if (IsGrounded && IsCrouchSlideAllowed)
+                    ColliderChangeToStand();
+                else if (value && IsGrounded && IsCrouchSlideAllowed)
                     ColliderChangeToCrouch();
             }
 
@@ -343,6 +343,7 @@ public class CharacterMovement : MonoBehaviour
     /// </summary>
     private void Start()
     {
+        _characterMortality = GetComponent<CharacterMortality>();
         _characterFighting = GetComponent<CharacterFighting>();
         _characterEvading = GetComponent<CharacterEvading>();
 
@@ -361,9 +362,9 @@ public class CharacterMovement : MonoBehaviour
     {
         // Save previous grounded state
         bool wasGrounded = IsGrounded;
-        
+
         // Check grounded state...
-        IsGrounded = Physics2D.Raycast(groundDetectionLeftColliderOffset.position, Vector2.down, groundDetectionColliderHeight, groundLayer) || 
+        IsGrounded = Physics2D.Raycast(groundDetectionLeftColliderOffset.position, Vector2.down, groundDetectionColliderHeight, groundLayer) ||
             Physics2D.Raycast(groundDetectionRightColliderOffset.position, Vector2.down, groundDetectionColliderHeight, groundLayer);
 
         // If we were not in the ground but then detected ground collision (just landed)...
@@ -439,7 +440,7 @@ public class CharacterMovement : MonoBehaviour
         _isPerformingJumpFlag = true;
 
         // Delay
-        yield return new WaitForSeconds(jumpDelay);
+        yield return new WaitForSeconds(groundJumpDelay);
 
         // Put the flag down
         _isPerformingJumpFlag = false;
@@ -490,21 +491,41 @@ public class CharacterMovement : MonoBehaviour
 
     /// <summary>
     /// Update collider to fit crouch position
+    /// TODO: Move character collider updates into separate component (remove it from mortality too)
     /// </summary>
     public void ColliderChangeToCrouch()
     {
+        // If character is already in crouch...
+        if (!_characterMortality.upperBodyCollider.activeSelf)
+            // Ignore
+            return;
+
         // Update collider
-        characterUpperBodyCollider.SetActive(false);
+        _characterMortality.upperBodyCollider.SetActive(false);
     }
 
     /// <summary>
     /// Update collider back to original
-    /// TODO: Move character updates into separate component
     /// </summary>
-    public void ColliderChangeToOriginal()
+    public void ColliderChangeToStand()
     {
+        // If character is laready in stand...
+        if (_characterMortality.upperBodyCollider.activeSelf)
+            // Ignore
+            return;
+
+        var collider = _characterMortality.upperBodyCollider.GetComponent<BoxCollider2D>();
+        bool isGround = Physics2D.Raycast(transform.position + Vector3.down * collider.size.y / 2f, Vector2.up, collider.offset.y + collider.size.y, groundLayer);
+        // TODO: Resolve the issue with obstacle above the player (solve player above player obstacle too)
+        Debug.unityLogger.Log(isGround);
+
+        // If there is obstacle...
+        if (isGround)
+            // Prevent to return into stand
+            return;
+
         // Update collider back to original
-        characterUpperBodyCollider.SetActive(true);
+        _characterMortality.upperBodyCollider.SetActive(true);
     }
 
     #endregion
@@ -640,6 +661,12 @@ public class CharacterMovement : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(groundDetectionLeftColliderOffset.position, groundDetectionLeftColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
         Gizmos.DrawLine(groundDetectionRightColliderOffset.position, groundDetectionRightColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
+
+        Gizmos.color = Color.magenta;
+        var collider = GetComponent<CharacterMortality>().upperBodyCollider.GetComponent<BoxCollider2D>();
+        Gizmos.DrawLine(
+            transform.position + Vector3.down * collider.size.y,
+            transform.position + Vector3.down * collider.size.y / 2f + Vector3.up * (collider.offset.y + collider.size.y));
     }
 
     #endregion

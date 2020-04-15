@@ -23,6 +23,16 @@ public class CharacterMortality : MonoBehaviour
     [Header("Components")]
     public AStatusEffectBase respawnInvulnerabilitySE;
 
+    /// <summary>
+    /// Character upper body collider component reference
+    /// </summary>
+    public GameObject upperBodyCollider;
+
+    /// <summary>
+    /// Character lower body collider component reference
+    /// </summary>
+    public GameObject lowerBodyCollider;
+
     #endregion
 
     #region Public Properties
@@ -71,8 +81,9 @@ public class CharacterMortality : MonoBehaviour
         // Make it death
         IsDeath = true;
 
-        // temporary ignore player to player collisions while one of the player is death
-        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer(LayerName.Player), LayerMask.NameToLayer(LayerName.Player), true);
+        // Temporary disable player collisions
+        upperBodyCollider.SetActive(false);
+        lowerBodyCollider.SetActive(false);
     }
 
     /// <summary>
@@ -83,8 +94,9 @@ public class CharacterMortality : MonoBehaviour
         // Revive
         IsDeath = false;
 
-        // Re-enable player to player collisions
-        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer(LayerName.Player), LayerMask.NameToLayer(LayerName.Player), false);
+        // Re-enable player collisions
+        upperBodyCollider.SetActive(true);
+        lowerBodyCollider.SetActive(true);
 
         // Apply invulnerability on respawn
         StatusEffectManager.Instance.Apply(GetComponent<StatusEffectProcessor>(), null, respawnInvulnerabilitySE);
