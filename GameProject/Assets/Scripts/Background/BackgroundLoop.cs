@@ -40,7 +40,6 @@ public class BackgroundLoop : MonoBehaviour
         Transform[] children = levels[obj].GetComponentsInChildren<Transform>();
         if (children.Length > 1)
         {
-            Debug.Log(position);
             GameObject firstChild = children[1].gameObject;
             GameObject lastChild = children[children.Length - 1].gameObject;
             if (lastChild.transform.position.x < position + screenBounds.x)
