@@ -3,6 +3,9 @@
 /// <summary>
 /// Defines character life relation
 /// It is mandatory component for character
+/// 
+/// TODO: Make interface for all character components and make better flow between them - recode for future project
+/// 
 /// </summary>
 public class CharacterMortality : MonoBehaviour
 {

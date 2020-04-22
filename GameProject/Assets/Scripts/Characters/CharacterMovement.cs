@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 /// <summary>
 /// Definition of character movement
@@ -411,22 +410,22 @@ public class CharacterMovement : MonoBehaviour
         {
             // Jump - Ground
             if (IsGroundJumpAllowed)
-                StartCoroutine(GroundJump());
+                DoGroundJump();
 
             // Jump - Air
             else if (IsAirJumpAllowed) // Elseif cuz we dont want to go into the issue where both jumpts are triggered at the same time (edge of the cliff)
-                AirJump();
+                DoAirJump();
         }
 
         // Slide (crouch)
         if (SlideTime > Time.time && SlideCooldownTimer + slideCooldown < Time.time)
             if (IsCrouchSlideAllowed)
-                Slide();
+                DoSlide();
 
         // Crouch
         if (CrouchTime > Time.time)
             if (IsCrouchSlideAllowed)
-                Crouch();
+                DoCrouch();
 
         // Modify physics
         ModifyPhysics();
@@ -435,6 +434,38 @@ public class CharacterMovement : MonoBehaviour
     #endregion
 
     #region Public Methods
+
+    /// <summary>
+    /// Perform ground jump movement
+    /// </summary>
+    public void DoGroundJump()
+    {
+        StartCoroutine(GroundJump_Perform());
+    }
+
+    /// <summary>
+    /// Perform air jump movement
+    /// </summary>
+    public void DoAirJump()
+    {
+        AirJump_Perform();
+    }
+
+    /// <summary>
+    /// Perform slide movement
+    /// </summary>
+    public void DoSlide()
+    {
+        Slide_Perform();
+    }
+
+    /// <summary>
+    /// Perform crouch movement
+    /// </summary>
+    public void DoCrouch()
+    {
+        Crouch_Perform();
+    }
 
     /// <summary>
     /// Perform jump movement
@@ -452,12 +483,12 @@ public class CharacterMovement : MonoBehaviour
 
     #endregion
 
-    #region Private Methods (Movement Actions)
+    #region Private Methods (Jump)
 
     /// <summary>
     /// Handle jump movement - from the ground
     /// </summary>
-    private IEnumerator GroundJump()
+    private IEnumerator GroundJump_Perform()
     {
         // Trigger jump events at trigger time only
         if (!_isPerformingJumpFlag)
@@ -482,7 +513,7 @@ public class CharacterMovement : MonoBehaviour
     /// <summary>
     /// Handle jump movement - above the ground
     /// </summary>
-    private void AirJump()
+    private void AirJump_Perform()
     {
         // Trigger jump events
         JumpTrigger();
@@ -494,10 +525,14 @@ public class CharacterMovement : MonoBehaviour
         PerformJump();
     }
 
+    #endregion
+
+    #region Private Methods (Slide/Crouch)
+
     /// <summary>
     /// Handle slide movement
     /// </summary>
-    private void Slide()
+    private void Slide_Perform()
     {
         // Update cooldown
         SlideCooldownTimer = Time.time;
@@ -513,7 +548,7 @@ public class CharacterMovement : MonoBehaviour
     /// <summary>
     /// Handle crouch
     /// </summary>
-    private void Crouch()
+    private void Crouch_Perform()
     {
         CrouchTime = 0;
     }
