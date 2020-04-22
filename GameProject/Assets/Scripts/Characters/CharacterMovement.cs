@@ -29,11 +29,6 @@ public class CharacterMovement : MonoBehaviour
     /// </summary>
     private CharacterEvading _characterEvading;
 
-    /// <summary>
-    /// Character mortality component reference
-    /// </summary>
-    private CharacterMortality _characterMortality;
-
     #endregion
 
     #region Private Members (Properties)
@@ -63,6 +58,11 @@ public class CharacterMovement : MonoBehaviour
     /// Character holder object reference
     /// </summary>
     public GameObject characterHolderObject;
+
+    /// <summary>
+    /// Character upper body collider component reference
+    /// </summary>
+    public GameObject characterUpperBodyCollider;
 
     #endregion
 
@@ -185,7 +185,7 @@ public class CharacterMovement : MonoBehaviour
     /// Delay to perform jump
     /// </summary>
     [Header("Settings")]
-    public float groundJumpDelay = 0.2f;
+    public float jumpDelay = 0.2f;
 
     /// <summary>
     /// Indicates, if the character is facing right (TRUE), otherwise left
@@ -228,30 +228,6 @@ public class CharacterMovement : MonoBehaviour
         (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingGroundSmashFlag)) &&
         (!_characterEvading || (_characterEvading && !_characterEvading.IsInDodge)) &&
         IsGrounded;
-
-    /// <summary>
-    /// Indicates if ground jump is alloowed to perform
-    /// ---
-    /// If not performing ground jump
-    /// If character is grounded
-    /// If character is not in dodge
-    /// </summary>
-    public bool IsGroundJumpAllowed =>
-        !_isPerformingJumpFlag &&
-        IsGrounded &&
-        (!_characterEvading || (_characterEvading && !_characterEvading.IsInDodge));
-
-    /// <summary>
-    /// Indicates if air jump is alloowed to perform
-    /// ---
-    /// If not performing ground jump (can happen due to ground jump delay)
-    /// If character is not grounded
-    /// If character still have multi-jump
-    /// </summary>
-    public bool IsAirJumpAllowed =>
-        !_isPerformingJumpFlag &&
-        !IsGrounded &&
-        _multiJumpCounter < multiJump;
 
     #endregion
 
@@ -300,7 +276,7 @@ public class CharacterMovement : MonoBehaviour
         set
         {
             if (!value && !IsInSlide && (!_characterFighting || (_characterFighting && !_characterFighting.IsPerformingGroundSmashFlag))) // Wants to return to orig size and character is out of slide too
-                ColliderChangeToStand();
+                ColliderChangeToOriginal();
             else if (value && IsGrounded && IsCrouchSlideAllowed)
                 ColliderChangeToCrouch();
 
@@ -321,8 +297,8 @@ public class CharacterMovement : MonoBehaviour
             if (value != _isInSlide)
             {
                 if (!value && !HasCrouchPress) // Wants to return to orig size and character is out of crouch too
-                    ColliderChangeToStand();
-                else if (value && IsGrounded && IsCrouchSlideAllowed)
+                    ColliderChangeToOriginal();
+                else if (IsGrounded && IsCrouchSlideAllowed)
                     ColliderChangeToCrouch();
             }
 
@@ -367,7 +343,6 @@ public class CharacterMovement : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        _characterMortality = GetComponent<CharacterMortality>();
         _characterFighting = GetComponent<CharacterFighting>();
         _characterEvading = GetComponent<CharacterEvading>();
 
@@ -386,10 +361,10 @@ public class CharacterMovement : MonoBehaviour
     {
         // Save previous grounded state
         bool wasGrounded = IsGrounded;
-
+        
         // Check grounded state...
-        IsGrounded = Physics2D.Raycast(groundDetectionLeftColliderOffset.position + Vector3.down * (groundDetectionColliderHeight / 2f), Vector2.down, groundDetectionColliderHeight / 2f, groundLayer) ||
-            Physics2D.Raycast(groundDetectionRightColliderOffset.position + Vector3.down * (groundDetectionColliderHeight / 2f), Vector2.down, groundDetectionColliderHeight / 2f, groundLayer);
+        IsGrounded = Physics2D.Raycast(groundDetectionLeftColliderOffset.position, Vector2.down, groundDetectionColliderHeight, groundLayer) || 
+            Physics2D.Raycast(groundDetectionRightColliderOffset.position, Vector2.down, groundDetectionColliderHeight, groundLayer);
 
         // If we were not in the ground but then detected ground collision (just landed)...
         if (!wasGrounded && IsGrounded)
@@ -405,27 +380,24 @@ public class CharacterMovement : MonoBehaviour
         // Make character move
         MoveCharacter();
 
-        // Jump
-        if (JumpTime > Time.time) // Elseif cuz we dont want to go into the issue where both jumpts are triggered at the same time (edge of the cliff)
-        {
-            // Jump - Ground
-            if (IsGroundJumpAllowed)
-                DoGroundJump();
+        // Jump - Ground
+        if (!_isPerformingJumpFlag && JumpTime > Time.time && IsGrounded)
+            if (!_characterEvading || (_characterEvading && !_characterEvading.IsInDodge))
+                StartCoroutine(GroundJump());
 
-            // Jump - Air
-            else if (IsAirJumpAllowed) // Elseif cuz we dont want to go into the issue where both jumpts are triggered at the same time (edge of the cliff)
-                DoAirJump();
-        }
+        // Jump - Air
+        if (JumpTime > Time.time && !IsGrounded && _multiJumpCounter < multiJump)
+            AirJump();
 
         // Slide (crouch)
         if (SlideTime > Time.time && SlideCooldownTimer + slideCooldown < Time.time)
             if (IsCrouchSlideAllowed)
-                DoSlide();
+                Slide();
 
         // Crouch
         if (CrouchTime > Time.time)
             if (IsCrouchSlideAllowed)
-                DoCrouch();
+                Crouch();
 
         // Modify physics
         ModifyPhysics();
@@ -436,38 +408,6 @@ public class CharacterMovement : MonoBehaviour
     #region Public Methods
 
     /// <summary>
-    /// Perform ground jump movement
-    /// </summary>
-    public void DoGroundJump()
-    {
-        StartCoroutine(GroundJump_Perform());
-    }
-
-    /// <summary>
-    /// Perform air jump movement
-    /// </summary>
-    public void DoAirJump()
-    {
-        AirJump_Perform();
-    }
-
-    /// <summary>
-    /// Perform slide movement
-    /// </summary>
-    public void DoSlide()
-    {
-        Slide_Perform();
-    }
-
-    /// <summary>
-    /// Perform crouch movement
-    /// </summary>
-    public void DoCrouch()
-    {
-        Crouch_Perform();
-    }
-
-    /// <summary>
     /// Perform jump movement
     /// </summary>
     /// <param name="jumpVelocity">Custom constant velocity</param>
@@ -475,20 +415,21 @@ public class CharacterMovement : MonoBehaviour
     {
         rb.velocity = new Vector2(jumpVelocity > 0 ? jumpVelocity / 2 * rb.velocity.x : rb.velocity.x, 0);
         rb.AddForce(Vector2.up * (jumpVelocity > 0 ? jumpVelocity : jumpStrength), ForceMode2D.Impulse);
+        _multiJumpCounter++;
         JumpTime = 0;
-        
+
         // Squezee animation - bounce off
         StartCoroutine(JumpSqueeze(0.5f, 0.9f, 0.1f));
     }
 
     #endregion
 
-    #region Private Methods (Jump)
+    #region Private Methods (Movement Actions)
 
     /// <summary>
     /// Handle jump movement - from the ground
     /// </summary>
-    private IEnumerator GroundJump_Perform()
+    private IEnumerator GroundJump()
     {
         // Trigger jump events at trigger time only
         if (!_isPerformingJumpFlag)
@@ -498,10 +439,7 @@ public class CharacterMovement : MonoBehaviour
         _isPerformingJumpFlag = true;
 
         // Delay
-        yield return new WaitForSeconds(groundJumpDelay);
-
-        // Reset multi-jump for air jumps
-        _multiJumpCounter = 0;
+        yield return new WaitForSeconds(jumpDelay);
 
         // Put the flag down
         _isPerformingJumpFlag = false;
@@ -513,26 +451,19 @@ public class CharacterMovement : MonoBehaviour
     /// <summary>
     /// Handle jump movement - above the ground
     /// </summary>
-    private void AirJump_Perform()
+    private void AirJump()
     {
         // Trigger jump events
         JumpTrigger();
-
-        // Increment multi-jump counter
-        _multiJumpCounter++;
 
         // Perform jump
         PerformJump();
     }
 
-    #endregion
-
-    #region Private Methods (Slide/Crouch)
-
     /// <summary>
     /// Handle slide movement
     /// </summary>
-    private void Slide_Perform()
+    private void Slide()
     {
         // Update cooldown
         SlideCooldownTimer = Time.time;
@@ -548,7 +479,7 @@ public class CharacterMovement : MonoBehaviour
     /// <summary>
     /// Handle crouch
     /// </summary>
-    private void Crouch_Perform()
+    private void Crouch()
     {
         CrouchTime = 0;
     }
@@ -559,42 +490,21 @@ public class CharacterMovement : MonoBehaviour
 
     /// <summary>
     /// Update collider to fit crouch position
-    /// TODO: Move character collider updates into separate component (remove it from mortality too)
     /// </summary>
     public void ColliderChangeToCrouch()
     {
-        // If character is already in crouch...
-        if (!_characterMortality.upperBodyCollider.activeSelf)
-            // Ignore
-            return;
-
         // Update collider
-        _characterMortality.upperBodyCollider.SetActive(false);
+        characterUpperBodyCollider.SetActive(false);
     }
 
     /// <summary>
     /// Update collider back to original
+    /// TODO: Move character updates into separate component
     /// </summary>
-    public void ColliderChangeToStand()
+    public void ColliderChangeToOriginal()
     {
-        // If character is already in stand...
-        if (_characterMortality.upperBodyCollider.activeSelf)
-            // Ignore
-            return;
-
-        // Get collider
-        var collider = _characterMortality.upperBodyCollider.GetComponent<BoxCollider2D>();
-        // Check if there is ground obstacle...
-        bool isGround = Physics2D.Raycast(groundDetectionLeftColliderOffset.position + Vector3.down * (collider.size.y), Vector2.up, collider.offset.y + collider.size.y * 1.5f, groundLayer) ||
-            Physics2D.Raycast(groundDetectionRightColliderOffset.position + Vector3.down * (collider.size.y), Vector2.up, collider.offset.y + collider.size.y * 1.5f, groundLayer);
-
-        // If there is obstacle...
-        if (isGround)
-            // Prevent to return into stand
-            return;
-
         // Update collider back to original
-        _characterMortality.upperBodyCollider.SetActive(true);
+        characterUpperBodyCollider.SetActive(true);
     }
 
     #endregion
@@ -657,6 +567,7 @@ public class CharacterMovement : MonoBehaviour
                 rb.drag = 0f;
 
             rb.gravityScale = 0;
+            _multiJumpCounter = 0;
         }
         // Air state
         else
@@ -725,20 +636,10 @@ public class CharacterMovement : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Draw crouch-ground detection
-        Gizmos.color = Color.magenta;
-        var collider = GetComponent<CharacterMortality>().upperBodyCollider.GetComponent<BoxCollider2D>();
-        Gizmos.DrawLine(
-            groundDetectionLeftColliderOffset.position + Vector3.down * collider.size.y,
-            groundDetectionLeftColliderOffset.position + Vector3.down * collider.size.y + Vector3.up * (collider.offset.y + collider.size.y * 1.5f));
-        Gizmos.DrawLine(
-            groundDetectionRightColliderOffset.position + Vector3.down * collider.size.y,
-            groundDetectionRightColliderOffset.position + Vector3.down * collider.size.y + Vector3.up * (collider.offset.y + collider.size.y * 1.5f));
-
         // Draw jump collider triggers
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(groundDetectionLeftColliderOffset.position + Vector3.down * (groundDetectionColliderHeight / 2f), groundDetectionLeftColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
-        Gizmos.DrawLine(groundDetectionRightColliderOffset.position + Vector3.down * (groundDetectionColliderHeight / 2f), groundDetectionRightColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
+        Gizmos.DrawLine(groundDetectionLeftColliderOffset.position, groundDetectionLeftColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
+        Gizmos.DrawLine(groundDetectionRightColliderOffset.position, groundDetectionRightColliderOffset.position + Vector3.down * groundDetectionColliderHeight);
     }
 
     #endregion

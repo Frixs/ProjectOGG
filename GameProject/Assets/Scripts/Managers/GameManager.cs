@@ -269,6 +269,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void InitializeInScene()
     {
+        // TODO: Load players from inspector as prefab once the input controller will be set up.
+        //       We need to control player controls in code before settings this up.
+
         // Load players
         Player1 = GameObject.Find(ObjectNameP1) ?? null;
         Player2 = GameObject.Find(ObjectNameP2) ?? null;

@@ -113,19 +113,7 @@ public class CharacterEvading : MonoBehaviour
         // Dodge
         if (DodgeTime > Time.time && DodgeCooldownTimer + dodgeCooldown < Time.time)
             if (IsDodgeAllowed)
-                DoDodge();
-    }
-
-    #endregion
-
-    #region Public Methods
-
-    /// <summary>
-    /// Perform Dodge ability
-    /// </summary>
-    public void DoDodge()
-    {
-        Dodge_Apply();
+                Dodge();
     }
 
     #endregion
@@ -133,9 +121,9 @@ public class CharacterEvading : MonoBehaviour
     #region Private Methods
 
     /// <summary>
-    /// Apply dodge ability
+    /// Perform a dodge
     /// </summary>
-    private void Dodge_Apply()
+    private void Dodge()
     {
         // Update cooldown
         DodgeCooldownTimer = Time.time;
