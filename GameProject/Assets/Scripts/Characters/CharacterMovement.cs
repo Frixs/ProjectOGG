@@ -429,6 +429,10 @@ public class CharacterMovement : MonoBehaviour
 
         // Modify physics
         ModifyPhysics();
+
+        if (IsGrounded) {
+            _multiJumpCounter = 0;
+        }
     }
 
     #endregion
@@ -478,7 +482,12 @@ public class CharacterMovement : MonoBehaviour
         JumpTime = 0;
         
         // Squezee animation - bounce off
-        StartCoroutine(JumpSqueeze(0.5f, 0.9f, 0.1f));
+        //StartCoroutine(JumpSqueeze(0.5f, 0.9f, 0.1f));
+    }
+
+    public int getAvailableJumps() 
+    {
+        return multiJump - _multiJumpCounter;
     }
 
     #endregion
