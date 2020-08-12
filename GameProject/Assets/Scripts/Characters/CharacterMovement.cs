@@ -395,6 +395,15 @@ public class CharacterMovement : MonoBehaviour
         if (!wasGrounded && IsGrounded)
             // Squezee animation - landing
             StartCoroutine(JumpSqueeze(1.25f, 0.8f, 0.05f));
+
+        Vector3 positionInGame = Camera.main.WorldToViewportPoint(gameObject.transform.position);
+
+        if (!(positionInGame.x > 0 && positionInGame.x < 1 &&
+             positionInGame.y > 0 && positionInGame.y < 1 && positionInGame.z > 0)
+             && !gameObject.GetComponent<CharacterMortality>().IsDeath) 
+        {
+            GameManager.Instance.Rebirth(gameObject.name);
+        }
     }
 
     /// <summary>
