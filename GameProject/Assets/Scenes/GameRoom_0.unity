@@ -15177,7 +15177,17 @@ PrefabInstance:
     - target: {fileID: 1894183678482515146, guid: ae533fec2fdf26a4a984c223bcc8694a,
         type: 3}
       propertyPath: cameraOffset.x
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1894183678482515146, guid: ae533fec2fdf26a4a984c223bcc8694a,
+        type: 3}
+      propertyPath: followOffset.x
       value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1894183678482515146, guid: ae533fec2fdf26a4a984c223bcc8694a,
+        type: 3}
+      propertyPath: speed
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 1894183678482515147, guid: ae533fec2fdf26a4a984c223bcc8694a,
         type: 3}
