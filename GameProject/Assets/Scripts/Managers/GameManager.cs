@@ -273,20 +273,6 @@ public class GameManager : MonoBehaviour
         Player1 = GameObject.Find(ObjectNameP1) ?? null;
         Player2 = GameObject.Find(ObjectNameP2) ?? null;
 
-        // Init spawnpoint lists
-        Player1_SpawnPointList = new List<Transform>();
-        Player2_SpawnPointList = new List<Transform>();
-        // Load spawn points
-        foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP1).transform)
-            Player1_SpawnPointList.Add(child);
-        foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP2).transform) // THIS FOREACH IS BROKEN I DONT KNOW WHY, ONLY COUNTS TO 17 INSTEAD OF 34
-            Player2_SpawnPointList.Add(child);
-
-        
-        Player2_SpawnPointList = Player1_SpawnPointList;
-
-        Debug.Log(Player1_SpawnPointList.Count + " " + Player2_SpawnPointList.Count);
-
         // Reset temporrary death count
         Player1_Statistics.ResetTemporaryDeathCount();
         Player2_Statistics.ResetTemporaryDeathCount();
@@ -321,6 +307,21 @@ public class GameManager : MonoBehaviour
     /// <param name="isDefending">Indicates if the spawnpoint pick should be preferred from the side (TRUE) or from the center (FALSE)</param>
     private void SetRespawnPosition(GameObject player, bool isDefending)
     {
+        if (Player1_SpawnPointList == null) 
+        {
+            // Init spawnpoint lists
+            Player1_SpawnPointList = new List<Transform>();
+            Player2_SpawnPointList = new List<Transform>();
+            // Load spawn points
+            foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP1).transform)
+                Player1_SpawnPointList.Add(child);
+            foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP2).transform) // THIS FOREACH IS BROKEN I DONT KNOW WHY, ONLY COUNTS TO 17 INSTEAD OF 34
+                Player2_SpawnPointList.Add(child);
+
+            Debug.Log(Player1_SpawnPointList.Count + " " + Player2_SpawnPointList.Count);
+        }
+
+
         var isItPlayer1 = IsItPlayer1(player);
 
         // Get spawn point list
