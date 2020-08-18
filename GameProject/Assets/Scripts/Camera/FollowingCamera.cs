@@ -107,6 +107,12 @@ public class FollowingCamera : MonoBehaviour
         if (!IsFollowingAllowed)
             return;
 
+        if (transform.position.x < -200 && !FollowFirstObject)
+            return;
+
+        if (transform.position.x > 200 && FollowFirstObject)
+            return;
+
         // Calculate threshold
         _threashold = CalculateThreshold();
 

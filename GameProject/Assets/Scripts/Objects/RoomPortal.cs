@@ -43,7 +43,15 @@ public class RoomPortal : MonoBehaviour
         // Player collision
         if (collision.gameObject.layer == LayerMask.NameToLayer(nameof(LayerName.Player)))
         {
-            // At least 1 player has to be death to open the portal
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+            Transform point = GameManager.Instance.Player1_SpawnPointList[0];
+
+            GameManager.Instance.Player2.transform.position = point.position;
+            point.position = new Vector3(-point.position.x, point.position.y, point.position.z);
+            GameManager.Instance.Player1.transform.position = point.position;
+
+            /* At least 1 player has to be death to open the portal
             if (!GameManager.Instance.AnyPlayerDeath)
                 return;
 
@@ -58,6 +66,7 @@ public class RoomPortal : MonoBehaviour
 
             // Load new room
             SceneManager.LoadScene($"GameRoom_{GameManager.Instance.CurrentRoom}");
+            */
         }
     }
 

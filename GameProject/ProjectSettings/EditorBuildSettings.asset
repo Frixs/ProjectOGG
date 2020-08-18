@@ -11,10 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GameRoom_0.unity
     guid: 2cda990e2423bbf4892e6590ba056729
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/GameRoom_-1.unity
     guid: f402731871af60842b8e7d8428b913bd
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/GameRoom_1.unity
     guid: 2d0e452d76f97b044a35cb667158b61c
   m_configObjects: {}

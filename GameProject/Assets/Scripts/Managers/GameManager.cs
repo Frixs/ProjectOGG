@@ -279,8 +279,13 @@ public class GameManager : MonoBehaviour
         // Load spawn points
         foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP1).transform)
             Player1_SpawnPointList.Add(child);
-        foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP2).transform)
+        foreach (Transform child in GameObject.Find(SpawnPointListObjectNameP2).transform) // THIS FOREACH IS BROKEN I DONT KNOW WHY, ONLY COUNTS TO 17 INSTEAD OF 34
             Player2_SpawnPointList.Add(child);
+
+        
+        Player2_SpawnPointList = Player1_SpawnPointList;
+
+        Debug.Log(Player1_SpawnPointList.Count + " " + Player2_SpawnPointList.Count);
 
         // Reset temporrary death count
         Player1_Statistics.ResetTemporaryDeathCount();
@@ -336,16 +341,17 @@ public class GameManager : MonoBehaviour
             // Take the spawn point while on screen
             if (isOnScreen) 
             {
+                if (spawnPoint == null) 
+                {
+                    spawnPoint = spawnPointList[i];
+                }
                 // Do not spawn player behind the other one
-                if (spawnPoint != null && (isItPlayer1 ? oppositePlayer.transform.position.x < spawnPointList[i].position.x : oppositePlayer.transform.position.x < spawnPointList[i].position.x))
-                    break;
-
+                if ((isItPlayer1 ? spawnPoint.position.x > spawnPointList[i].position.x : spawnPoint.position.x < spawnPointList[i].position.x))
+                {
+                    spawnPoint = spawnPointList[i];
+                }
                 // Save it
-                spawnPoint = spawnPointList[i];
             }
-            // If we want take defending spawn point pick the first one on screen
-            if (isOnScreen && isDefending)
-                break;
         }
 
         // Make sure we have spawn point
