@@ -335,6 +335,8 @@ public class CharacterFighting : MonoBehaviour
     /// </summary>
     public void DoRangedAttack()
     {
+        AudioSource audioSource = GameObject.Find("Throw").GetComponent<AudioSource>();
+        audioSource.Play();
         StartCoroutine(AttackRanged_Start());
     }
 
@@ -343,6 +345,8 @@ public class CharacterFighting : MonoBehaviour
     /// </summary>
     public void DoMeleeAttack()
     {
+        AudioSource audioSource = GameObject.Find("Throw").GetComponent<AudioSource>();
+        audioSource.Play();
         StartCoroutine(AttackMelee_Perform());
     }
 
@@ -522,6 +526,7 @@ public class CharacterFighting : MonoBehaviour
     /// </summary>
     private IEnumerator AttackRanged_Start()
     {
+
         // Flag up
         IsPerformingFireFlag = true;
 
@@ -601,6 +606,9 @@ public class CharacterFighting : MonoBehaviour
             // Ignoring, character is death (corpse)
             if (playerRoot.GetComponent<CharacterMortality>().IsDeath)
                 return;
+
+            AudioSource audioSource = GameObject.Find("Stab").GetComponent<AudioSource>();
+            audioSource.Play();
 
             // Rebirth the player
             GameManager.Instance.Rebirth(playerRoot.name);

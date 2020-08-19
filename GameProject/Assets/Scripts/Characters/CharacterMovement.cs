@@ -399,7 +399,7 @@ public class CharacterMovement : MonoBehaviour
         Vector3 positionInGame = Camera.main.WorldToViewportPoint(gameObject.transform.position);
 
         if (!(positionInGame.x > 0 && positionInGame.x < 1 &&
-             positionInGame.y > 0 && positionInGame.y < 1 && positionInGame.z > 0)
+             positionInGame.y > 0 && positionInGame.z > 0)
              && !gameObject.GetComponent<CharacterMortality>().IsDeath) 
         {
             GameManager.Instance.Rebirth(gameObject.name);

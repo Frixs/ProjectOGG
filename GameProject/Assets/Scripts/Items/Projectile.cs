@@ -107,6 +107,9 @@ public class Projectile : MonoBehaviour
             if (playerRoot.GetComponent<CharacterMortality>().IsDeath)
                 return;
 
+            AudioSource audioSource = GameObject.Find("Hit").GetComponent<AudioSource>();
+            audioSource.Play();
+
             // Trigger hit event
             GetComponent<Animator>().SetTrigger(triggerEvent);
 

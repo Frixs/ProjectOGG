@@ -20,22 +20,20 @@ public class BackgroundParalax : MonoBehaviour
 
     void Start()
     {
-        float height = mainCamera.orthographicSize * 2;
-        float width = height * Screen.width / Screen.height;
-
         screenBounds = mainCamera.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, mainCamera.transform.position.z));
-        
+
+        float camHeight = 100.0f * mainCamera.orthographicSize * 2.0f; 
 
         SpriteRenderer farBackgroundSpriteRenderer = farBackground.GetComponent<SpriteRenderer>();
-        float farBackgroundGameObjectHeight = farBackgroundSpriteRenderer.sprite.rect.height / 3;
-        float farBackgroundGameObjectWidth = farBackgroundSpriteRenderer.sprite.rect.width / 3;
-        float farBackgroundScale = Screen.height / farBackgroundGameObjectHeight;
+        float farBackgroundGameObjectHeight = farBackgroundSpriteRenderer.sprite.rect.height;
+        //float farBackgroundGameObjectWidth = farBackgroundSpriteRenderer.sprite.rect.width / 3;
+        float farBackgroundScale = camHeight / farBackgroundGameObjectHeight;
         farBackground.transform.localScale = new Vector3(farBackgroundScale, farBackgroundScale, farBackground.transform.localScale.z);
         farBackground.transform.position = new Vector3(mainCamera.transform.position.x * farBackgroundMovement, 0, farBackground.transform.position.z);
 
         SpriteRenderer nearBackgroundSpriteRenderer = nearBackground.GetComponent<SpriteRenderer>();
-        float nearBackgroundGameObjectHeight = nearBackgroundSpriteRenderer.sprite.rect.height / 3;
-        float nearBackgroundScale = Screen.height / nearBackgroundGameObjectHeight;
+        float nearBackgroundGameObjectHeight = nearBackgroundSpriteRenderer.sprite.rect.height;
+        float nearBackgroundScale = camHeight / nearBackgroundGameObjectHeight;
         nearBackground.transform.localScale = new Vector3(nearBackgroundScale, nearBackgroundScale, nearBackground.transform.localScale.z);
         nearBackground.transform.position = new Vector3(mainCamera.transform.position.x * nearBackgroundMovement, 0, nearBackground.transform.position.z);
         
@@ -44,6 +42,7 @@ public class BackgroundParalax : MonoBehaviour
             GameObject clone = Instantiate(farBackground) as GameObject;
             clone.transform.SetParent(farBackground.transform.parent);
             clone.transform.position = farBackground.transform.position + new Vector3(farBackgroundSpriteRenderer.bounds.size.x * (i + 1), 0,0);
+            clone.transform.localScale = farBackground.transform.localScale;
         }
 
         for (int i = 0; i <= 2; i++)
@@ -51,6 +50,7 @@ public class BackgroundParalax : MonoBehaviour
             GameObject clone = Instantiate(nearBackground) as GameObject;
             clone.transform.SetParent(nearBackground.transform.parent);
             clone.transform.position = nearBackground.transform.position + new Vector3(nearBackgroundSpriteRenderer.bounds.size.x * (i+1), 0, 0);
+            clone.transform.localScale = farBackground.transform.localScale;
         }
 
     }
@@ -59,17 +59,27 @@ public class BackgroundParalax : MonoBehaviour
     {
         SpriteRenderer farBackgroundSpriteRenderer = farBackground.GetComponent<SpriteRenderer>();
         SpriteRenderer nearBackgroundSpriteRenderer = nearBackground.GetComponent<SpriteRenderer>();
+
+        float camHeight = 100.0f * mainCamera.orthographicSize * 2.0f;
+        float farBackgroundScale = camHeight / farBackgroundSpriteRenderer.sprite.rect.height;
+        farBackground.transform.localScale = new Vector3(farBackgroundScale, farBackgroundScale, farBackground.transform.localScale.z);
+        float nearBackgroundScale = camHeight / nearBackgroundSpriteRenderer.sprite.rect.height;
+        nearBackground.transform.localScale = new Vector3(nearBackgroundScale, nearBackgroundScale, nearBackground.transform.localScale.z);
+
+
         farBackground.transform.position = new Vector3(mainCamera.transform.position.x * farBackgroundMovement, 0, farBackground.transform.position.z);
         nearBackground.transform.position = new Vector3(mainCamera.transform.position.x * nearBackgroundMovement, 0, nearBackground.transform.position.z);
 
         for (int i = 0; i < farBackground.transform.parent.childCount; i++)
         {
             farBackground.transform.parent.GetChild(i).transform.position = farBackground.transform.position + new Vector3(farBackgroundSpriteRenderer.bounds.size.x * i, 0, 0);
+            farBackground.transform.parent.GetChild(i).transform.localScale = farBackground.transform.localScale;
         }
 
         for (int i = 0; i < nearBackground.transform.parent.childCount; i++)
         {
             nearBackground.transform.parent.GetChild(i).transform.position = nearBackground.transform.position + new Vector3(nearBackgroundSpriteRenderer.bounds.size.x * i, 0, 0);
+            nearBackground.transform.parent.GetChild(i).transform.localScale = nearBackground.transform.localScale;
         }
 
         bool done = false;
